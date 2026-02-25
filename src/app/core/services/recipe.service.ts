@@ -1,5 +1,15 @@
 import { inject, Injectable } from '@angular/core';
-import { addDoc, collection, Firestore, onSnapshot, orderBy, query } from '@angular/fire/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  DocumentSnapshot,
+  Firestore,
+  FirestoreError,
+  onSnapshot,
+  orderBy,
+  query,
+} from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Recipe } from '../models/recipe.model';
 
@@ -27,14 +37,41 @@ export class RecipeService {
       const unsubscribe = onSnapshot(
         recipesQuery,
         (snapshot) => {
-          const recipes = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...(doc.data() as Omit<Recipe, 'id'>),
+          const recipes = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<Recipe, 'id'>),
           }));
           observer.next(recipes);
         },
-        (error) => {
+        (error: FirestoreError) => {
           console.error('Error fetching recipes:', error);
+          observer.error(error);
+        },
+      );
+
+      return () => unsubscribe();
+    });
+  }
+
+  getRecipe(id: string): Observable<Recipe | undefined> {
+    const recipesCollection = collection(this.firestore, this.collectionName);
+    const recipeDoc = doc(recipesCollection, id);
+
+    return new Observable<Recipe | undefined>((observer) => {
+      const unsubscribe = onSnapshot(
+        recipeDoc,
+        (snapshot: DocumentSnapshot) => {
+          if (snapshot.exists()) {
+            observer.next({
+              id: snapshot.id,
+              ...(snapshot.data() as Omit<Recipe, 'id'>),
+            });
+          } else {
+            observer.next(undefined);
+          }
+        },
+        (error: FirestoreError) => {
+          console.error('Error fetching recipe:', error);
           observer.error(error);
         },
       );

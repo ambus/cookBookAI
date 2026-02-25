@@ -13,6 +13,7 @@
         <div class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           @for (recipe of recipes; track recipe.id) {
             <div
+              [routerLink]="['/recipe', recipe.id]"
               class="break-inside-avoid bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700/80 flex flex-col hover:border-blue-500/50 hover:bg-slate-800/90 transition-all duration-300 group shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 overflow-hidden cursor-pointer"
             >
               <div class="p-6">

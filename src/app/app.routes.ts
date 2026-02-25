@@ -22,6 +22,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'recipe/:id',
+        loadComponent: () =>
+          import('./features/recipe/recipe-detail/recipe-detail.component').then(
+            (m) => m.RecipeDetailComponent,
+          ),
+      },
+      {
         path: 'add-recipe',
         loadComponent: () =>
           import('./features/recipe/add-recipe/add-recipe.component').then(
