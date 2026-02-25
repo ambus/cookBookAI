@@ -14,6 +14,13 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
       },
+      {
+        path: 'add-recipe',
+        loadComponent: () =>
+          import('./features/recipe/add-recipe/add-recipe.component').then(
+            (m) => m.AddRecipeComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
