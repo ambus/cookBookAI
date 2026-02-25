@@ -15,6 +15,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
       },
       {
+        path: 'recipes',
+        loadComponent: () =>
+          import('./features/recipe/recipe-list/recipe-list.component').then(
+            (m) => m.RecipeListComponent,
+          ),
+      },
+      {
         path: 'add-recipe',
         loadComponent: () =>
           import('./features/recipe/add-recipe/add-recipe.component').then(
