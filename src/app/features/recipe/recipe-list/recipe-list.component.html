@@ -95,6 +95,12 @@
                   {{ recipe.title }}
                 </h3>
 
+                @if (recipe.opinion) {
+                  <p class="text-xs text-slate-400 italic line-clamp-2 mb-3">
+                    "{{ recipe.opinion }}"
+                  </p>
+                }
+
                 @if (recipe.ingredients) {
                   <p class="text-sm text-slate-400 line-clamp-3 mb-4">
                     <span class="font-medium text-slate-300">Składniki: </span

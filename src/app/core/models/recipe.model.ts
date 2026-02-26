@@ -16,6 +16,7 @@ export interface Recipe {
   title: string;
   category: RecipeCategory;
   rating?: RecipeRating;
+  opinion?: string;
   sourceUrl?: string;
   ingredients: string;
   instructions: string;

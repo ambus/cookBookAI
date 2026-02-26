@@ -85,6 +85,14 @@
           {{ recipe.title }}
         </h1>
 
+        @if (recipe.opinion) {
+          <div
+            class="mb-8 p-4 bg-slate-900/40 rounded-xl border-l-4 border-blue-500 italic text-slate-300"
+          >
+            "{{ recipe.opinion }}"
+          </div>
+        }
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Ingredients Section -->
           <div class="md:col-span-1 space-y-4">
