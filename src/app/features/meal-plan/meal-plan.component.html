@@ -1,0 +1,472 @@
+<div class="container mx-auto p-4 sm:p-6 lg:p-8">
+  <div class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+      Plan Posiłków
+    </h1>
+
+    <div
+      class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700"
+    >
+      <button
+        (click)="prevWeek()"
+        class="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-2 px-2">
+        <input
+          type="date"
+          [ngModel]="currentStartDate()"
+          (change)="onStartDateChange($event)"
+          class="bg-transparent border-none text-sm font-medium text-slate-700 dark:text-slate-200 focus:ring-0 p-0 cursor-pointer"
+        />
+        <span class="text-slate-400 dark:text-slate-500">-</span>
+        <span class="text-sm font-medium text-slate-700 dark:text-slate-200">{{
+          currentEndDate() | date: 'shortDate'
+        }}</span>
+      </div>
+
+      <button
+        (click)="nextWeek()"
+        class="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (isLoadingPlan()) {
+    <div class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 7 Days Grid -->
+      <div class="lg:col-span-2 space-y-4">
+        <h2
+          class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2"
+        >
+          <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          Dni tygodnia
+        </h2>
+
+        @for (day of plannedDays(); track day.dateStr) {
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md relative"
+            [class.z-20]="editingMeal()?.dateStr === day.dateStr"
+          >
+            <div
+              class="flex flex-col sm:flex-row border-b border-slate-100 dark:border-slate-700/50"
+            >
+              <!-- Date Header -->
+              <div
+                class="bg-slate-50 dark:bg-slate-800/80 px-4 py-3 sm:w-40 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-700/50 flex flex-col justify-center"
+              >
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                >
+                  {{ day.dateObj | date: 'EEEE' }}
+                </span>
+                <span class="text-sm font-medium text-slate-900 dark:text-slate-200">
+                  {{ day.dateObj | date: 'd MMM yyyy' }}
+                </span>
+              </div>
+
+              <!-- Content -->
+              <div class="p-4 flex-1 flex flex-col justify-center">
+                @if (editingMeal()?.dateStr === day.dateStr) {
+                  <!-- Edit Mode -->
+                  <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3 relative">
+                      <div class="relative w-full">
+                        <input
+                          type="text"
+                          placeholder="Wyszukaj przepis lub wpisz własny..."
+                          [value]="editingMeal()!.searchTerm"
+                          (input)="onSearchInput($event)"
+                          (focus)="onSearchFocus()"
+                          (blur)="onSearchBlur()"
+                          class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        @if (isDropdownOpen() && filteredRecipes().length > 0) {
+                          <div
+                            class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 max-h-60 overflow-auto"
+                          >
+                            <ul class="py-1 text-sm text-slate-700 dark:text-slate-200">
+                              @for (r of filteredRecipes(); track r.id) {
+                                <li>
+                                  <button
+                                    type="button"
+                                    (click)="selectRecipe(r)"
+                                    class="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                  >
+                                    {{ r.title }}
+                                  </button>
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 mt-2">
+                      <button
+                        (click)="cancelEditing()"
+                        class="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        Anuluj
+                      </button>
+                      <button
+                        (click)="saveMeal()"
+                        class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+                      >
+                        Zapisz
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- View Mode -->
+                  @if (day.meal) {
+                    <div class="flex items-center justify-between group">
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          @if (day.meal.recipeId) {
+                            <a
+                              [href]="'/recipe/' + day.meal.recipeId"
+                              class="text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            >
+                              {{ getRecipeTitle(day.meal.recipeId) }}
+                            </a>
+                          } @else {
+                            <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                              {{ day.meal.customText }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Actions -->
+                      <div
+                        class="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          (click)="startEditing(day.dateStr, day.meal)"
+                          class="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          title="Edytuj"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          (click)="day.meal.id && removeMeal(day.meal.id)"
+                          class="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          title="Usuń"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <button
+                      (click)="startEditing(day.dateStr)"
+                      class="text-sm font-medium text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-500 rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition-colors w-full bg-slate-50/50 dark:bg-slate-800/50"
+                    >
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      Zaplanuj posiłek
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Loose Meals Sidebar -->
+      <div class="space-y-4">
+        <div
+          class="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50 p-5 shadow-sm"
+        >
+          <h2
+            class="text-lg font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-4"
+          >
+            <svg
+              class="w-5 h-5 text-blue-500 dark:text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+            Luźne posiłki
+          </h2>
+          <p class="text-xs text-blue-700 dark:text-blue-300 mb-5">
+            Posiłki, które chcesz zrobić w tym tygodniu, ale bez przypisania do konkretnego dnia.
+          </p>
+
+          <div class="space-y-3">
+            @for (meal of looseMeals(); track meal.id) {
+              <!-- Loose Meal Item -->
+              <div
+                class="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm group relative"
+                [class.z-20]="editingMeal()?.id === meal.id"
+              >
+                @if (editingMeal()?.id === meal.id) {
+                  <!-- Edit form for loose meal -->
+                  <div class="flex flex-col gap-2 relative">
+                    <div class="relative w-full">
+                      <input
+                        type="text"
+                        placeholder="Wyszukaj przepis lub wpisz własny..."
+                        [value]="editingMeal()!.searchTerm"
+                        (input)="onSearchInput($event)"
+                        (focus)="onSearchFocus()"
+                        (blur)="onSearchBlur()"
+                        class="w-full text-sm rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      @if (isDropdownOpen() && filteredRecipes().length > 0) {
+                        <div
+                          class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 max-h-60 overflow-auto"
+                        >
+                          <ul class="py-1 text-sm text-slate-700 dark:text-slate-200">
+                            @for (r of filteredRecipes(); track r.id) {
+                              <li>
+                                <button
+                                  type="button"
+                                  (click)="selectRecipe(r)"
+                                  class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                >
+                                  {{ r.title }}
+                                </button>
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                    </div>
+                    <div class="flex items-center justify-end gap-2 mt-1">
+                      <button
+                        (click)="cancelEditing()"
+                        class="px-2 py-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                      >
+                        Anuluj
+                      </button>
+                      <button
+                        (click)="saveMeal()"
+                        class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded"
+                      >
+                        Zapisz
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5 self-start"
+                      ></div>
+                      @if (meal.recipeId) {
+                        <a
+                          [href]="'/recipe/' + meal.recipeId"
+                          class="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 leading-tight"
+                        >
+                          {{ getRecipeTitle(meal.recipeId) }}
+                        </a>
+                      } @else {
+                        <span
+                          class="text-sm font-medium text-slate-900 dark:text-slate-100 leading-tight"
+                          >{{ meal.customText }}</span
+                        >
+                      }
+                    </div>
+                    <div
+                      class="flex items-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    >
+                      <button
+                        (click)="startEditing(undefined, meal)"
+                        class="p-1 text-slate-400 hover:text-blue-500"
+                      >
+                        <svg
+                          class="w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        (click)="meal.id && removeMeal(meal.id)"
+                        class="p-1 text-slate-400 hover:text-red-500"
+                      >
+                        <svg
+                          class="w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (
+              editingMeal()?.dateStr === undefined && editingMeal() !== null && !editingMeal()?.id
+            ) {
+              <!-- Add new loose meal form -->
+              <div
+                class="bg-white dark:bg-slate-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm mt-3"
+              >
+                <div class="flex flex-col gap-2 relative">
+                  <div class="relative w-full">
+                    <input
+                      type="text"
+                      placeholder="Wyszukaj przepis lub wpisz własny..."
+                      [value]="editingMeal()!.searchTerm"
+                      (input)="onSearchInput($event)"
+                      (focus)="onSearchFocus()"
+                      (blur)="onSearchBlur()"
+                      class="w-full text-sm rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    @if (isDropdownOpen() && filteredRecipes().length > 0) {
+                      <div
+                        class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 max-h-60 overflow-auto"
+                      >
+                        <ul class="py-1 text-sm text-slate-700 dark:text-slate-200">
+                          @for (r of filteredRecipes(); track r.id) {
+                            <li>
+                              <button
+                                type="button"
+                                (click)="selectRecipe(r)"
+                                class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                              >
+                                {{ r.title }}
+                              </button>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  </div>
+                  <div class="flex items-center justify-end gap-2 mt-1">
+                    <button
+                      (click)="cancelEditing()"
+                      class="px-2 py-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      (click)="saveMeal()"
+                      class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded"
+                    >
+                      Dodaj
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <!-- Add loose meal button -->
+              <button
+                (click)="startEditing(undefined)"
+                class="mt-3 w-full py-2.5 flex items-center justify-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border border-dashed border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Dodaj luźny pomysł
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

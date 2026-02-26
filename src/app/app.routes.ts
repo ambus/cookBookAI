@@ -42,6 +42,11 @@ export const routes: Routes = [
             (m) => m.AddRecipeComponent,
           ),
       },
+      {
+        path: 'meal-plan',
+        loadComponent: () =>
+          import('./features/meal-plan/meal-plan.component').then((m) => m.MealPlanComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
