@@ -1,6 +1,7 @@
 import { UpperCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
+import { LayoutService } from '../layout.service';
 
 @Component({
   selector: 'app-header',
@@ -10,8 +11,13 @@ import { AuthService } from '../../auth/auth.service';
 })
 export class HeaderComponent {
   private readonly authService = inject(AuthService);
+  private readonly layoutService = inject(LayoutService);
 
   readonly user = this.authService.user;
+
+  toggleMobileMenu() {
+    this.layoutService.toggleMobileMenu();
+  }
 
   readonly userInitials = computed(() => {
     const user = this.user();
