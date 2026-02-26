@@ -35,6 +35,39 @@ export class RecipeDetailComponent {
     return colors[category] || colors['Inne'];
   }
 
+  getRatingDisplay(
+    rating: string | undefined,
+  ): { icon: string; text: string; color: string } | null {
+    switch (rating) {
+      case 'fatalne':
+        return {
+          icon: '❌',
+          text: 'Fatalne',
+          color: 'text-red-400 border-red-500/20 bg-red-500/10',
+        };
+      case 'średnie':
+        return {
+          icon: '➖',
+          text: 'Średnie',
+          color: 'text-amber-400 border-amber-500/20 bg-amber-500/10',
+        };
+      case 'dobre':
+        return {
+          icon: '⭐',
+          text: 'Dobre',
+          color: 'text-blue-400 border-blue-500/20 bg-blue-500/10',
+        };
+      case 'wyśmienite':
+        return {
+          icon: '⭐⭐',
+          text: 'Wyśmienite',
+          color: 'text-green-400 border-green-500/20 bg-green-500/10',
+        };
+      default:
+        return null;
+    }
+  }
+
   async deleteRecipe(id: string | undefined): Promise<void> {
     if (!id) return;
 

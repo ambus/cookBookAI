@@ -10,6 +10,7 @@ import {
   onSnapshot,
   query,
   updateDoc,
+  writeBatch,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Recipe } from '../models/recipe.model';
@@ -28,6 +29,21 @@ export class RecipeService {
       createdAt: new Date().toISOString(),
     });
     return docRef.id;
+  }
+
+  async importRecipes(recipes: Omit<Recipe, 'id'>[]): Promise<void> {
+    const batch = writeBatch(this.firestore);
+    const recipesCollection = collection(this.firestore, this.collectionName);
+
+    for (const recipe of recipes) {
+      const docRef = doc(recipesCollection);
+      batch.set(docRef, {
+        ...recipe,
+        createdAt: recipe.createdAt || new Date().toISOString(),
+      });
+    }
+
+    await batch.commit();
   }
 
   getRecipes(): Observable<Recipe[]> {

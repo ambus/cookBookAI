@@ -67,6 +67,66 @@
       </div>
     </div>
 
+    <!-- Rating Section -->
+    <div>
+      <label class="block text-sm font-medium text-slate-300">Ocena (opcjonalnie)</label>
+      <div class="mt-3 flex flex-wrap gap-3">
+        <label
+          class="relative flex cursor-pointer rounded-lg px-4 py-3 shadow-sm focus:outline-none bg-slate-900 border border-slate-700 hover:border-slate-500 transition-colors"
+          [class.ring-2]="recipeForm.controls.rating.value === 'fatalne'"
+          [class.ring-red-500]="recipeForm.controls.rating.value === 'fatalne'"
+        >
+          <input type="radio" formControlName="rating" value="fatalne" class="sr-only" />
+          <span class="flex items-center text-sm font-medium text-slate-300">
+            <span class="mr-2">❌</span> Fatalne
+          </span>
+        </label>
+
+        <label
+          class="relative flex cursor-pointer rounded-lg px-4 py-3 shadow-sm focus:outline-none bg-slate-900 border border-slate-700 hover:border-slate-500 transition-colors"
+          [class.ring-2]="recipeForm.controls.rating.value === 'średnie'"
+          [class.ring-amber-500]="recipeForm.controls.rating.value === 'średnie'"
+        >
+          <input type="radio" formControlName="rating" value="średnie" class="sr-only" />
+          <span class="flex items-center text-sm font-medium text-slate-300">
+            <span class="mr-2">➖</span> Średnie
+          </span>
+        </label>
+
+        <label
+          class="relative flex cursor-pointer rounded-lg px-4 py-3 shadow-sm focus:outline-none bg-slate-900 border border-slate-700 hover:border-slate-500 transition-colors"
+          [class.ring-2]="recipeForm.controls.rating.value === 'dobre'"
+          [class.ring-blue-500]="recipeForm.controls.rating.value === 'dobre'"
+        >
+          <input type="radio" formControlName="rating" value="dobre" class="sr-only" />
+          <span class="flex items-center text-sm font-medium text-slate-300">
+            <span class="mr-2">⭐</span> Dobre
+          </span>
+        </label>
+
+        <label
+          class="relative flex cursor-pointer rounded-lg px-4 py-3 shadow-sm focus:outline-none bg-slate-900 border border-slate-700 hover:border-slate-500 transition-colors"
+          [class.ring-2]="recipeForm.controls.rating.value === 'wyśmienite'"
+          [class.ring-green-500]="recipeForm.controls.rating.value === 'wyśmienite'"
+        >
+          <input type="radio" formControlName="rating" value="wyśmienite" class="sr-only" />
+          <span class="flex items-center text-sm font-medium text-slate-300">
+            <span class="mr-2">⭐⭐</span> Wyśmienite
+          </span>
+        </label>
+
+        @if (recipeForm.controls.rating.value) {
+          <button
+            type="button"
+            (click)="recipeForm.controls.rating.setValue('')"
+            class="text-sm font-medium text-slate-400 hover:text-slate-200 mt-2 px-2"
+          >
+            Wyczyść
+          </button>
+        }
+      </div>
+    </div>
+
     <!-- Source URL Section -->
     <div>
       <label for="sourceUrl" class="block text-sm font-medium text-slate-300"

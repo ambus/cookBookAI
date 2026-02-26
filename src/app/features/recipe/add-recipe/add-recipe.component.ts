@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { first } from 'rxjs';
-import { Recipe, RecipeCategory } from '../../../core/models/recipe.model';
+import { Recipe, RecipeCategory, RecipeRating } from '../../../core/models/recipe.model';
 import { RecipeService } from '../../../core/services/recipe.service';
 
 @Component({
@@ -35,6 +35,7 @@ export class AddRecipeComponent implements OnInit {
   recipeForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     category: ['Dania główne' as RecipeCategory, [Validators.required]],
+    rating: ['' as RecipeRating | ''],
     sourceUrl: [''],
     ingredients: ['', [Validators.required]],
     instructions: ['', [Validators.required]],
@@ -53,6 +54,7 @@ export class AddRecipeComponent implements OnInit {
             this.recipeForm.patchValue({
               title: recipe.title,
               category: recipe.category,
+              rating: recipe.rating || '',
               sourceUrl: recipe.sourceUrl || '',
               ingredients: recipe.ingredients,
               instructions: recipe.instructions,
@@ -65,12 +67,17 @@ export class AddRecipeComponent implements OnInit {
   async onSubmit(): Promise<void> {
     if (this.recipeForm.valid) {
       try {
-        const recipeData = this.recipeForm.getRawValue();
+        const rawData = this.recipeForm.getRawValue();
+        const recipeData: Partial<Recipe> = {
+          ...rawData,
+          rating: rawData.rating === '' ? undefined : (rawData.rating as RecipeRating),
+        };
+
         if (this.isEditMode() && this.recipeId()) {
           await this.recipeService.updateRecipe(this.recipeId()!, recipeData);
           this.router.navigate(['/recipe', this.recipeId()]);
         } else {
-          await this.recipeService.addRecipe(recipeData);
+          await this.recipeService.addRecipe(recipeData as Recipe);
           this.router.navigate(['/recipes']);
         }
       } catch (error) {

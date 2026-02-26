@@ -9,10 +9,13 @@ export type RecipeCategory =
   | 'Warzywa'
   | 'Zupy';
 
+export type RecipeRating = 'fatalne' | 'średnie' | 'dobre' | 'wyśmienite';
+
 export interface Recipe {
   id?: string;
   title: string;
   category: RecipeCategory;
+  rating?: RecipeRating;
   sourceUrl?: string;
   ingredients: string;
   instructions: string;

@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { RecipeService } from '../../../core/services/recipe.service';
 
 @Component({
@@ -27,5 +28,92 @@ export class RecipeListComponent {
       Zupy: 'bg-red-500/10 text-red-400 border-red-500/20',
     };
     return colors[category] || colors['Inne'];
+  }
+
+  getRatingDisplay(
+    rating: string | undefined,
+  ): { icon: string; text: string; color: string } | null {
+    switch (rating) {
+      case 'fatalne':
+        return {
+          icon: '❌',
+          text: 'Fatalne',
+          color: 'text-red-400 border-red-500/20 bg-red-500/10',
+        };
+      case 'średnie':
+        return {
+          icon: '➖',
+          text: 'Średnie',
+          color: 'text-amber-400 border-amber-500/20 bg-amber-500/10',
+        };
+      case 'dobre':
+        return {
+          icon: '⭐',
+          text: 'Dobre',
+          color: 'text-blue-400 border-blue-500/20 bg-blue-500/10',
+        };
+      case 'wyśmienite':
+        return {
+          icon: '⭐⭐',
+          text: 'Wyśmienite',
+          color: 'text-green-400 border-green-500/20 bg-green-500/10',
+        };
+      default:
+        return null;
+    }
+  }
+
+  async exportRecipes(): Promise<void> {
+    try {
+      const recipes = await firstValueFrom(this.recipes$);
+      const exportData = recipes.map((r) => {
+        const { id, ...rest } = r;
+        return rest;
+      });
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `przepisy-eksport-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Błąd podczas eksportu:', error);
+      alert('Nie udało się wyeksportować przepisów.');
+    }
+  }
+
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      try {
+        const result = e.target?.result as string;
+        const recipes = JSON.parse(result);
+
+        if (!Array.isArray(recipes)) {
+          throw new Error('Nieprawidłowy format pliku. Oczekiwano tablicy przepisów.');
+        }
+
+        await this.recipeService.importRecipes(recipes);
+        alert(`Pomyślnie zaimportowano ${recipes.length} przepisów!`);
+      } catch (error) {
+        console.error('Błąd podczas importu:', error);
+        alert(
+          'Nie udało się zaimportować przepisów. Upewnij się, że plik to poprawny JSON wyeksportowany z aplikacji.',
+        );
+      }
+      input.value = '';
+    };
+
+    reader.readAsText(file);
   }
 }

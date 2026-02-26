@@ -5,6 +5,57 @@
     >
       Moje przepisy
     </h2>
+
+    <div class="flex gap-3">
+      <button
+        type="button"
+        (click)="exportRecipes()"
+        class="inline-flex items-center rounded-md bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 transition-colors"
+      >
+        <svg
+          class="-ml-0.5 mr-1.5 h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+          />
+        </svg>
+        Eksportuj
+      </button>
+
+      <button
+        type="button"
+        (click)="fileInput.click()"
+        class="inline-flex items-center rounded-md bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 transition-colors"
+      >
+        <svg
+          class="-ml-0.5 mr-1.5 h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+          />
+        </svg>
+        Importuj
+      </button>
+      <input
+        type="file"
+        #fileInput
+        accept=".json"
+        class="hidden"
+        (change)="onFileSelected($event)"
+      />
+    </div>
   </div>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
@@ -17,14 +68,25 @@
               class="break-inside-avoid bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700/80 flex flex-col hover:border-blue-500/50 hover:bg-slate-800/90 transition-all duration-300 group shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 overflow-hidden cursor-pointer"
             >
               <div class="p-6">
-                <!-- Category Badge -->
-                <div class="mb-4">
+                <!-- Category and Rating Badges -->
+                <div class="mb-4 flex flex-wrap gap-2">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
                     [class]="getCategoryColor(recipe.category)"
                   >
                     {{ recipe.category }}
                   </span>
+
+                  @if (getRatingDisplay(recipe.rating); as rating) {
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                      [class]="rating.color"
+                      [title]="rating.text"
+                    >
+                      <span class="-ml-0.5 mr-1" aria-hidden="true">{{ rating.icon }}</span>
+                      {{ rating.text }}
+                    </span>
+                  }
                 </div>
 
                 <h3

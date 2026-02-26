@@ -61,14 +61,24 @@
       class="bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-700/80 shadow-xl overflow-hidden"
     >
       <div class="p-8 sm:p-10">
-        <!-- Category Badge -->
-        <div class="mb-6">
+        <!-- Category and Rating Badges -->
+        <div class="mb-6 flex flex-wrap gap-3">
           <span
             class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"
             [class]="getCategoryColor(recipe.category)"
           >
             {{ recipe.category }}
           </span>
+
+          @if (getRatingDisplay(recipe.rating); as rating) {
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"
+              [class]="rating.color"
+            >
+              <span class="mr-1.5">{{ rating.icon }}</span>
+              {{ rating.text }}
+            </span>
+          }
         </div>
 
         <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-8 tracking-tight">
