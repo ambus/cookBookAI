@@ -1,12 +1,13 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { RecipeService } from '../../../core/services/recipe.service';
 
 @Component({
   selector: 'app-recipe-list',
-  imports: [AsyncPipe, RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './recipe-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -14,6 +15,22 @@ export class RecipeListComponent {
   private recipeService = inject(RecipeService);
 
   readonly recipes$ = this.recipeService.getRecipes();
+  readonly recipes = toSignal(this.recipes$, { initialValue: [] });
+  readonly searchQuery = signal('');
+
+  readonly filteredRecipes = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const allRecipes = this.recipes();
+
+    if (!query) return allRecipes;
+
+    return allRecipes.filter(
+      (recipe) =>
+        recipe.title.toLowerCase().includes(query) ||
+        (recipe.ingredients && recipe.ingredients.toLowerCase().includes(query)) ||
+        recipe.category.toLowerCase().includes(query),
+    );
+  });
 
   getCategoryColor(category: string): string {
     const colors: Record<string, string> = {
