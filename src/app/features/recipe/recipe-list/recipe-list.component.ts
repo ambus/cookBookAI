@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { RecipeCategory, RecipeRating } from '../../../core/models/recipe.model';
 import { RecipeService } from '../../../core/services/recipe.service';
 
 @Component({
@@ -17,19 +18,41 @@ export class RecipeListComponent {
   readonly recipes$ = this.recipeService.getRecipes();
   readonly recipes = toSignal(this.recipes$, { initialValue: [] });
   readonly searchQuery = signal('');
+  readonly selectedCategory = signal<RecipeCategory | ''>('');
+  readonly selectedRating = signal<RecipeRating | ''>('');
+
+  readonly CATEGORIES: RecipeCategory[] = [
+    'Ciasta i słodycze',
+    'Dania główne',
+    'Imprezy',
+    'Inne',
+    'Rice Cakes',
+    'Sałatki',
+    'Śniadania i kolacje',
+    'Warzywa',
+    'Zupy',
+  ];
+
+  readonly RATINGS: RecipeRating[] = ['fatalne', 'średnie', 'dobre', 'wyśmienite'];
 
   readonly filteredRecipes = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
+    const categoryFilter = this.selectedCategory();
+    const ratingFilter = this.selectedRating();
     const allRecipes = this.recipes();
 
-    if (!query) return allRecipes;
-
-    return allRecipes.filter(
-      (recipe) =>
+    return allRecipes.filter((recipe) => {
+      const matchesQuery =
+        !query ||
         recipe.title.toLowerCase().includes(query) ||
         (recipe.ingredients && recipe.ingredients.toLowerCase().includes(query)) ||
-        recipe.category.toLowerCase().includes(query),
-    );
+        recipe.category.toLowerCase().includes(query);
+
+      const matchesCategory = !categoryFilter || recipe.category === categoryFilter;
+      const matchesRating = !ratingFilter || recipe.rating === ratingFilter;
+
+      return matchesQuery && matchesCategory && matchesRating;
+    });
   });
 
   getCategoryColor(category: string): string {
