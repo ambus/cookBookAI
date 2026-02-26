@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { RecipeCategory } from '../../../core/models/recipe.model';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { first } from 'rxjs';
+import { Recipe, RecipeCategory } from '../../../core/models/recipe.model';
 import { RecipeService } from '../../../core/services/recipe.service';
 
 @Component({
@@ -10,10 +11,14 @@ import { RecipeService } from '../../../core/services/recipe.service';
   templateUrl: './add-recipe.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddRecipeComponent {
+export class AddRecipeComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private recipeService = inject(RecipeService);
+
+  isEditMode = signal(false);
+  recipeId = signal<string | null>(null);
 
   readonly categories: RecipeCategory[] = [
     'Ciasta i słodycze',
@@ -35,15 +40,41 @@ export class AddRecipeComponent {
     instructions: ['', [Validators.required]],
   });
 
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode.set(true);
+      this.recipeId.set(id);
+      this.recipeService
+        .getRecipe(id)
+        .pipe(first())
+        .subscribe((recipe: Recipe | undefined) => {
+          if (recipe) {
+            this.recipeForm.patchValue({
+              title: recipe.title,
+              category: recipe.category,
+              sourceUrl: recipe.sourceUrl || '',
+              ingredients: recipe.ingredients,
+              instructions: recipe.instructions,
+            });
+          }
+        });
+    }
+  }
+
   async onSubmit(): Promise<void> {
     if (this.recipeForm.valid) {
       try {
         const recipeData = this.recipeForm.getRawValue();
-        await this.recipeService.addRecipe(recipeData);
-        this.router.navigate(['/recipes']);
+        if (this.isEditMode() && this.recipeId()) {
+          await this.recipeService.updateRecipe(this.recipeId()!, recipeData);
+          this.router.navigate(['/recipe', this.recipeId()]);
+        } else {
+          await this.recipeService.addRecipe(recipeData);
+          this.router.navigate(['/recipes']);
+        }
       } catch (error) {
         console.error('Błąd podczas zapisywania przepisu:', error);
-        // Ewentualnie wyświetlić jakiś komunikat o błędzie użytkownikowi
       }
     } else {
       this.recipeForm.markAllAsTouched();

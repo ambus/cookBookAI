@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map, switchMap } from 'rxjs';
 import { RecipeService } from '../../../core/services/recipe.service';
 
@@ -12,6 +12,7 @@ import { RecipeService } from '../../../core/services/recipe.service';
 })
 export class RecipeDetailComponent {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private recipeService = inject(RecipeService);
 
   readonly recipe$ = this.route.paramMap.pipe(
@@ -32,5 +33,21 @@ export class RecipeDetailComponent {
       Zupy: 'bg-red-500/10 text-red-400 border-red-500/20',
     };
     return colors[category] || colors['Inne'];
+  }
+
+  async deleteRecipe(id: string | undefined): Promise<void> {
+    if (!id) return;
+
+    const confirmDelete = window.confirm(
+      'Czy na pewno chcesz usunąć ten przepis? Tej akcji nie można cofnąć.',
+    );
+    if (confirmDelete) {
+      try {
+        await this.recipeService.deleteRecipe(id);
+        this.router.navigate(['/recipes']);
+      } catch (error) {
+        console.error('Błąd podczas usuwania przepisu:', error);
+      }
+    }
   }
 }

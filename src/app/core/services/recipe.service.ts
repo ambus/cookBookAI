@@ -2,13 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   DocumentSnapshot,
   Firestore,
   FirestoreError,
   onSnapshot,
-  orderBy,
   query,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Recipe } from '../models/recipe.model';
@@ -31,7 +32,7 @@ export class RecipeService {
 
   getRecipes(): Observable<Recipe[]> {
     const recipesCollection = collection(this.firestore, this.collectionName);
-    const recipesQuery = query(recipesCollection, orderBy('createdAt', 'desc'));
+    const recipesQuery = query(recipesCollection);
 
     return new Observable<Recipe[]>((observer) => {
       const unsubscribe = onSnapshot(
@@ -41,6 +42,14 @@ export class RecipeService {
             id: docSnap.id,
             ...(docSnap.data() as Omit<Recipe, 'id'>),
           }));
+
+          // Sort client-side to ensure recipes without createdAt are still included
+          recipes.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+          });
+
           observer.next(recipes);
         },
         (error: FirestoreError) => {
@@ -78,5 +87,17 @@ export class RecipeService {
 
       return () => unsubscribe();
     });
+  }
+
+  async updateRecipe(id: string, recipeData: Partial<Recipe>): Promise<void> {
+    const recipesCollection = collection(this.firestore, this.collectionName);
+    const recipeDoc = doc(recipesCollection, id);
+    await updateDoc(recipeDoc, recipeData);
+  }
+
+  async deleteRecipe(id: string): Promise<void> {
+    const recipesCollection = collection(this.firestore, this.collectionName);
+    const recipeDoc = doc(recipesCollection, id);
+    await deleteDoc(recipeDoc);
   }
 }

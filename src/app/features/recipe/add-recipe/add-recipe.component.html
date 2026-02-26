@@ -4,14 +4,22 @@
       <h2
         class="text-2xl font-extrabold text-white sm:text-3xl bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent inline-block"
       >
-        Dodaj nowy przepis
+        @if (isEditMode()) {
+          Edytuj przepis
+        } @else {
+          Dodaj nowy przepis
+        }
       </h2>
       <p class="mt-2 text-sm text-slate-400">
-        Wypełnij poniższy formularz, aby dodać przepis do swojej bazy.
+        @if (isEditMode()) {
+          Wprowadź poprawki do swojego przepisu.
+        } @else {
+          Wypełnij poniższy formularz, aby dodać przepis do swojej bazy.
+        }
       </p>
     </div>
     <a
-      routerLink="/recipes"
+      [routerLink]="isEditMode() ? ['/recipe', recipeId()] : ['/recipes']"
       class="text-sm font-medium text-slate-400 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg"
     >
       Anuluj
@@ -124,7 +132,11 @@
         [disabled]="recipeForm.invalid && recipeForm.touched"
         class="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 hover:shadow-blue-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Zapisz przepis
+        @if (isEditMode()) {
+          Zapisz zmiany
+        } @else {
+          Zapisz przepis
+        }
       </button>
     </div>
   </form>

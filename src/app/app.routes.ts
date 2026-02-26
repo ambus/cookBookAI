@@ -35,6 +35,13 @@ export const routes: Routes = [
             (m) => m.AddRecipeComponent,
           ),
       },
+      {
+        path: 'edit-recipe/:id',
+        loadComponent: () =>
+          import('./features/recipe/add-recipe/add-recipe.component').then(
+            (m) => m.AddRecipeComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
