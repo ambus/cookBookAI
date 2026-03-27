@@ -72,8 +72,13 @@ export class AddRecipeComponent implements OnInit {
         const rawData = this.recipeForm.getRawValue();
         const recipeData: Partial<Recipe> = {
           ...rawData,
-          rating: rawData.rating === '' ? undefined : (rawData.rating as RecipeRating),
-        };
+        } as any;
+        
+        if (rawData.rating === '') {
+          delete recipeData.rating;
+        } else {
+          recipeData.rating = rawData.rating as RecipeRating;
+        }
 
         if (this.isEditMode() && this.recipeId()) {
           await this.recipeService.updateRecipe(this.recipeId()!, recipeData);
