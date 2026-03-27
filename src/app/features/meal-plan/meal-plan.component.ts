@@ -24,22 +24,17 @@ export class MealPlanComponent implements OnInit {
   private recipeService = inject(RecipeService);
 
   // --- State ---
-  currentStartDate = signal<string>(this.getMonday(new Date()).toISOString().split('T')[0]);
+  currentStartDate = signal<string>(this.getMondayDateString());
 
   currentEndDate = computed(() => {
-    const start = new Date(this.currentStartDate());
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    return end.toISOString().split('T')[0];
+    return this.addDaysToDateString(this.currentStartDate(), 6);
   });
 
   weekDays = computed(() => {
-    const start = new Date(this.currentStartDate());
+    const startStr = this.currentStartDate();
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      days.push(d.toISOString().split('T')[0]);
+      days.push(this.addDaysToDateString(startStr, i));
     }
     return days;
   });
@@ -113,17 +108,13 @@ export class MealPlanComponent implements OnInit {
   }
 
   nextWeek() {
-    const start = new Date(this.currentStartDate());
-    start.setDate(start.getDate() + 7);
-    this.currentStartDate.set(start.toISOString().split('T')[0]);
+    this.currentStartDate.set(this.addDaysToDateString(this.currentStartDate(), 7));
     this.loadPlan();
     this.cancelEditing();
   }
 
   prevWeek() {
-    const start = new Date(this.currentStartDate());
-    start.setDate(start.getDate() - 7);
-    this.currentStartDate.set(start.toISOString().split('T')[0]);
+    this.currentStartDate.set(this.addDaysToDateString(this.currentStartDate(), -7));
     this.loadPlan();
     this.cancelEditing();
   }
@@ -311,10 +302,17 @@ export class MealPlanComponent implements OnInit {
   }
 
   // --- Helpers ---
-  private getMonday(d: Date): Date {
-    d = new Date(d);
+  private addDaysToDateString(dateStr: string, daysToAdd: number): string {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(Date.UTC(year, month - 1, day + daysToAdd));
+    return d.toISOString().split('T')[0];
+  }
+
+  private getMondayDateString(): string {
+    const d = new Date();
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
+    const mondayUTC = new Date(Date.UTC(d.getFullYear(), d.getMonth(), diff));
+    return mondayUTC.toISOString().split('T')[0];
   }
 }
