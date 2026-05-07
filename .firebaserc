@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "cookbookai-f4a03"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
